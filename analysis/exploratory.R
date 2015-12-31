@@ -67,3 +67,27 @@ fastballs_per_game <- ddply(data2013, .(gameString, pitcher), fastball_pct)
 ##########################
 data2013$inningOuts = paste0(data2013$inning - 1, '.', data2013$outs)
 test_df <- ddply(data2013, .(gameString, pitcher), summarize, leftGame = max(inningOuts), startedGame = min(inningOuts))
+
+
+##########################
+## Figuring out aggression
+## Middle three baseballs
+#########################
+
+all_data$midy <- (all_data$szt - all_data$szb)/2 + all_data$szb
+
+
+
+# This will be nice for later in the demonstrations
+xyplot(pz~px | downMiddle, data=all_data, groups=pitchType, 
+       auto.key=TRUE, 
+       aspect="iso", 
+       xlim=c(-2.2, 2.2), 
+       ylim=c(0,5), 
+       panel=function(...){
+         panel.xyplot(...) 
+         panel.rect(inKZone, 
+                    botKzone, 
+                    outKZone, 
+                    topKzone, 
+                    border="black", lty=3)})

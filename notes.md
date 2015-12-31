@@ -3,11 +3,12 @@
 - Feature engineering
 	- IP/App
 	- Fastball%
-	- Avg. MPH
+	- Avg. MPH of fastball
 	- Aggression (pct of pitches down the middle)
 	- Swinging Strike %
 		- Of the times the batter swung, how many were swing and miss?
 		- going after "swing and miss stuff"
+	- Differential between Avg fastball MPH and breaking pitches MPH
 - Joined
 - Cluster
 - Present Results

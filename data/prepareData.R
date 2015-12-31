@@ -75,6 +75,9 @@ innings_pitched <- function(enter_exit_vector){
 IP$IP <- apply(IP[, c("enter", "exit")], 1, innings_pitched)
 IP$pos <- ifelse(IP$enter == 0.0, "SP", "RP")
 
+# Merge position into all data
+all_data <- merge(all_data, IP[, c("gameString", "pitcher", "pos")])
+
 
 # Write the IP/APP variable to the main dataframe
 mainData <- aggregate(IP$IP, by=list(IP$pitcher, IP$pos), mean)
@@ -100,6 +103,7 @@ fastballs_per_game <- merge(fastballs_per_game, IP[,c("gameString", "pitcher", "
 fastball_agg <- aggregate(fastballs_per_game$V1, by=list(fastballs_per_game$pitcher, fastballs_per_game$pos), mean)
 names(fastball_agg) <- c("pitcher", "pos", "FB%")
 
+#add to mainData
 mainData <- merge(mainData, fastball_agg, by=c("pitcher", "pos"))
 
 
@@ -117,3 +121,25 @@ names(mph_agg) <- c("pitcher", "pos", "MPH")
 
 mainData <- merge(mainData, mph_agg, by=c("pitcher", "pos"))
 
+
+# Aggression (straight down the middle or edges)
+
+#determine the midpoint of the y direction (x centered on 0)
+all_data$midy <- (all_data$szt - all_data$szb)/2 + all_data$szb
+
+all_data$downMiddle <- 0
+mask = all_data$px <=  (2*2.94 / 12) & 
+  all_data$px >= (-2*2.94 / 12) & 
+  all_data$pz <= all_data$midy + (2*2.94 / 12) & 
+  all_data$pz >= all_data$midy - (2*2.94 / 12)
+
+all_data[mask,"downMiddle"] <- 1
+
+aggression <- aggregate(all_data$downMiddle, by=list(all_data$gameString, all_data$pitcher), mean)xz
+names(aggression) <- c("gameString", "pitcher", "Aggression")
+aggression <- merge(aggression, IP[,c("gameString", "pitcher", "pos")])
+aggression_agg <- aggregate(aggression$Aggression, by=list(aggression$pitcher, aggression$pos), mean)
+names(aggression_agg) <- c("pitcher", "pos", "AGG")
+
+#add to mainData
+mainData <- merge(mainData, aggression_agg, by=c("pitcher", "pos"))
