@@ -8,6 +8,8 @@ data2013 <- read.csv('data/2013.csv')
 
 # Group pitchers into RP/SP, get the first inning they appeared in the game
 first_app <- ddply(data2013, .(gameString, pitcher), "[", 1, "inning")
+last_app <- ddply(data2013, .(gameString, pitcher), "]", 1, "inning")
+data2013$inningOuts = paste0(data2013$inning - 1, '.', data2013$outs)
 pitches_per_game <- ddply(data2013, .(gameString, pitcher), nrow)
 first_app$pos <- ifelse(first_app$`[` == 1, "SP", "RP")
 first_app <- merge(first_app, pitches_per_game, by=c("gameString", "pitcher"))
@@ -54,4 +56,14 @@ fastball_pct <- function(df){
   
 }
 
+
 fastballs_per_game <- ddply(data2013, .(gameString, pitcher), fastball_pct)
+
+
+
+##########################
+## These will be in 
+## the final script
+##########################
+data2013$inningOuts = paste0(data2013$inning - 1, '.', data2013$outs)
+test_df <- ddply(data2013, .(gameString, pitcher), summarize, leftGame = max(inningOuts), startedGame = min(inningOuts))

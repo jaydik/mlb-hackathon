@@ -13,5 +13,5 @@ vignettes/*.html
 vignettes/*.pdf
 
 # data files
-data/*
+data/*.csv
 .Rproj.user
