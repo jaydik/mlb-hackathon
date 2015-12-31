@@ -1,0 +1,12 @@
+# Data Flow
+- Raw
+- Feature engineering
+	- IP/App
+	- Fastball%
+	- Contact%
+	- Avg. MPH
+	- Aggression (pct of pitches down the middle)
+	- Swinging Strike %
+- Joined
+- Cluster
+- Present Results
