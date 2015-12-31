@@ -46,10 +46,12 @@ pitch_velo_plot <- ggplot(pitch_velo, aes(x=mean_velo, y=mean_pitches, color=pos
 
 
 # Find fastball percentage
-fastball_pct <- function(df, name){
-  fastballs <- nrow(subset(df[df$pitcher == name & df$pitchType %in% c("FA", "FT", "FF", "FC"), ]))
-  pitches <- nrow(subset(df[df$pitcher == name, ]))
+fastball_pct <- function(df){
+  fastballs <- nrow(subset(df[df$pitchType %in% c("FA", "FT", "FF", "FC", "SI"), ]))
+  pitches <- nrow(subset(df))
 
   return (fastballs / pitches)
   
-  }
+}
+
+fastballs_per_game <- ddply(data2013, .(gameString, pitcher), fastball_pct)
