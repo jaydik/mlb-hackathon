@@ -78,6 +78,7 @@ IP$pos <- ifelse(IP$enter == 0.0, "SP", "RP")
 
 # Write the IP/APP variable to the main dataframe
 mainData <- aggregate(IP$IP, by=list(IP$pitcher, IP$pos), mean)
+names(mainData) <- c("pitcher", "pos", "IP/App")
 
 
 # Fastball Percentage
@@ -93,4 +94,26 @@ fastball_pct <- function(df){
 
 # Fastball percentage per game
 fastballs_per_game <- ddply(all_data, .(gameString, pitcher), fastball_pct)
+
+# Bring in position to aggregate
+fastballs_per_game <- merge(fastballs_per_game, IP[,c("gameString", "pitcher", "pos")])
+fastball_agg <- aggregate(fastballs_per_game$V1, by=list(fastballs_per_game$pitcher, fastballs_per_game$pos), mean)
+names(fastball_agg) <- c("pitcher", "pos", "FB%")
+
+mainData <- merge(mainData, fastball_agg, by=c("pitcher", "pos"))
+
+
+# Average MPH (of your fastball)
+fastball_velocity <- function(df){
+  fastballs <- subset(df[df$pitchType %in% c("FA", "FT", "FF", "FC", "SI"), ])
+  
+  return (mean(fastballs$releaseVelocity))
+  
+}
+average_mph <- ddply(all_data, .(gameString, pitcher), fastball_velocity)
+average_mph <- merge(average_mph, IP[,c("gameString", "pitcher", "pos")])
+mph_agg <- aggregate(average_mph$V1, by=list(average_mph$pitcher, average_mph$pos), mean)
+names(mph_agg) <- c("pitcher", "pos", "MPH")
+
+mainData <- merge(mainData, mph_agg, by=c("pitcher", "pos"))
 

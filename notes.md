@@ -3,10 +3,11 @@
 - Feature engineering
 	- IP/App
 	- Fastball%
-	- Contact%
 	- Avg. MPH
 	- Aggression (pct of pitches down the middle)
 	- Swinging Strike %
+		- Of the times the batter swung, how many were swing and miss?
+		- going after "swing and miss stuff"
 - Joined
 - Cluster
 - Present Results
