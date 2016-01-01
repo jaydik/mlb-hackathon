@@ -4,12 +4,13 @@ setwd('~/Documents/mlb-hackathon/')
 library(plyr)
 
 # Load Datasets
-# data2013 <- read.csv('data/2013.csv')
-# data2014 <- read.csv('data/2014.csv')
-# data2015 <- read.csv('data/2015.csv')
-# 
-# all_data <- rbind(data2013, data2014, data2015)
-all_data <- read.csv('data/2015-WS.csv')
+data2013 <- read.csv('data/2013.csv')
+data2014 <- read.csv('data/2014.csv')
+data2015 <- read.csv('data/2015.csv')
+
+all_data <- rbind(data2013, data2014, data2015)
+
+all_data <- subset(all_data, all_data$pitchType != "UN")
 
 #######################
 ## FEATURE ENGINEERING
@@ -80,8 +81,11 @@ all_data <- merge(all_data, IP[, c("gameString", "pitcher", "pos")])
 
 
 # Write the IP/APP variable to the main dataframe
-mainData <- aggregate(IP$IP, by=list(IP$pitcher, IP$pos), mean)
+mainData <- aggregate(IP$IP, by=list(IP$pitcher, IP$pos), mean, na.rm=TRUE)
 names(mainData) <- c("pitcher", "pos", "IP/App")
+app <- ddply(IP, .(pitcher, pos), summarize, appearances=length(unique(gameString)))
+mainData <- merge(mainData, app, by=c("pitcher", "pos"))
+
 
 
 # Fastball Percentage
@@ -100,7 +104,7 @@ fastballs_per_game <- ddply(all_data, .(gameString, pitcher), fastball_pct)
 
 # Bring in position to aggregate
 fastballs_per_game <- merge(fastballs_per_game, IP[,c("gameString", "pitcher", "pos")])
-fastball_agg <- aggregate(fastballs_per_game$V1, by=list(fastballs_per_game$pitcher, fastballs_per_game$pos), mean)
+fastball_agg <- aggregate(fastballs_per_game$V1, by=list(fastballs_per_game$pitcher, fastballs_per_game$pos), mean, na.rm=TRUE)
 names(fastball_agg) <- c("pitcher", "pos", "FB%")
 
 #add to mainData
@@ -111,15 +115,38 @@ mainData <- merge(mainData, fastball_agg, by=c("pitcher", "pos"))
 fastball_velocity <- function(df){
   fastballs <- subset(df[df$pitchType %in% c("FA", "FT", "FF", "FC", "SI"), ])
   
-  return (mean(fastballs$releaseVelocity))
+  return (mean(fastballs$releaseVelocity, na.rm=TRUE))
   
 }
+
 average_mph <- ddply(all_data, .(gameString, pitcher), fastball_velocity)
 average_mph <- merge(average_mph, IP[,c("gameString", "pitcher", "pos")])
-mph_agg <- aggregate(average_mph$V1, by=list(average_mph$pitcher, average_mph$pos), mean)
+mph_agg <- aggregate(average_mph$V1, by=list(average_mph$pitcher, average_mph$pos), mean, na.rm=TRUE)
 names(mph_agg) <- c("pitcher", "pos", "MPH")
 
 mainData <- merge(mainData, mph_agg, by=c("pitcher", "pos"))
+
+
+# Average MPH (of your fastball)
+offspeed_velocity <- function(df){
+  offspeeds <- subset(df[!(df$pitchType %in% c("FA", "FT", "FF", "FC", "SI")), ])
+  
+  return (mean(offspeeds$releaseVelocity))
+  
+}
+
+offspeed_mph <- ddply(all_data, .(gameString, pitcher), offspeed_velocity)
+offspeed_mph <- merge(offspeed_mph, IP[,c("gameString", "pitcher", "pos")])
+offspeed_agg <- aggregate(offspeed_mph$V1, by=list(offspeed_mph$pitcher, offspeed_mph$pos), mean, na.rm=TRUE)
+names(offspeed_agg) <- c("pitcher", "pos", "MPH")
+
+diff_agg = merge(mph_agg, offspeed_agg, by=c("pitcher", "pos"))
+names(diff_agg) <- c("pitcher", "pos", "FB", "OFF")
+
+diff_agg$DIFF <- diff_agg$FB - diff_agg$OFF
+diff_agg[is.na(diff_agg)] <- 0
+
+mainData <- merge(mainData, diff_agg[,c("pitcher", "pos", "DIFF")], by=c("pitcher", "pos"))
 
 
 # Aggression (straight down the middle or edges)
@@ -133,13 +160,35 @@ mask = all_data$px <=  (2*2.94 / 12) &
   all_data$pz <= all_data$midy + (2*2.94 / 12) & 
   all_data$pz >= all_data$midy - (2*2.94 / 12)
 
-all_data[mask,"downMiddle"] <- 1
+all_data$downMiddle <- ifelse(mask, 1, 0)
 
-aggression <- aggregate(all_data$downMiddle, by=list(all_data$gameString, all_data$pitcher), mean)xz
+aggression <- aggregate(all_data$downMiddle, by=list(all_data$gameString, all_data$pitcher), mean, na.rm=TRUE)
 names(aggression) <- c("gameString", "pitcher", "Aggression")
 aggression <- merge(aggression, IP[,c("gameString", "pitcher", "pos")])
-aggression_agg <- aggregate(aggression$Aggression, by=list(aggression$pitcher, aggression$pos), mean)
+aggression_agg <- aggregate(aggression$Aggression, by=list(aggression$pitcher, aggression$pos), mean, na.rm=TRUE)
 names(aggression_agg) <- c("pitcher", "pos", "AGG")
 
-#add to mainData
+# Add to mainData
 mainData <- merge(mainData, aggression_agg, by=c("pitcher", "pos"))
+
+
+# Swinging Strike Pct
+swing_and_miss <- function(df){
+  swinging_strikes <- nrow(subset(df[df$pitchResult %in% c("SS", "MB"), ]))
+  swings <- nrow(subset(df[df$pitchResult %in% c("SS", "F", "FT", "FB", "IP"), ]))
+  
+  return (round((swinging_strikes / swings), 3))
+  
+}
+
+whiffs <- ddply(all_data, .(gameString, pitcher), swing_and_miss)
+whiffs <- merge(whiffs, IP[,c("gameString", "pitcher", "pos")])
+whiffs_agg <- aggregate(whiffs$V1, by=list(whiffs$pitcher, whiffs$pos), mean, na.rm=TRUE)
+names(whiffs_agg) <- c("pitcher", "pos", "WHIFF%")
+
+mainData <- merge(mainData, whiffs_agg, by=c("pitcher", "pos"))
+
+
+mainData <- mainData[, c("pitcher", "pos", "IP/App", "FB%", "MPH", "DIFF", "AGG", "WHIFF%", "appearances")]
+
+write.table(mainData, file="mainData.csv", sep=",", row.names=FALSE)
