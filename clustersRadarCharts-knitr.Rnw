@@ -1,0 +1,387 @@
+\documentclass{scrartcl}
+
+\usepackage{hyperref}
+\usepackage{lipsum}
+\usepackage{fourier}
+
+
+\begin{document}
+
+<<include=FALSE>>=
+library(knitr)
+opts_chunk$set(
+concordance=TRUE,
+fig.align="center"
+)
+@
+
+
+%%%%%%%%%%%%% Ritle %%%%%%%%%%%%%%%%%
+\title{Discovering Pitcher Types using Kmeans}
+\subtitle{TruMedia Hackathon 2015/2016}
+\author{Jon Dickerson\thanks{Email: \href{mailto:jonathan.d.dickerson@gmail.com}{jonathan.d.dickerson@gmail.com}}}
+\date{\today}
+\maketitle
+
+%%%%%%%%%%%%% Abstract %%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+\lipsum[1]
+\end{abstract}
+\section{Introduction}
+Color commentators and sportswriters love phrases like ``swing and miss stuff'' and ``pound the zone'' when discussing pitchers. They also love cliches such as pitchers vs. throwers and ``crafty veterans''. But what are they talking about? What are they doing with these phrases? In essence, they are attempting to group pitchers into clusters, based on their innate abilities and tendencies. If there is one thing the recent advances in data science have taught us, it's that computers are much better at that; so why not give a computer a chance to do the same?
+
+The aim of this paper is to first derive metrics for input into a K-means clustering algorithm (see Section \ref{methodology}), then examining each of the resulting clusters in turn in Section \ref{results}. Section \ref{discussion} examines the results further, giving an overall evaluation of the algorithm's output. Section \ref{conclusion} concludes.
+
+\clearpage
+\section{Methodology}\label{methodology}
+The input data for this analysis was pitch-level data for the 2013-2015 seasons, including postseason. The variables included information on about the players and game and importantly for this analysis, the pitch. Pitch variables included position of the ball as it crossed the plate, the release velocity, and pitch type, among others. These variables themselves could potentially have been useful in a clustering algorithm, however, to fully take advantage of the clustering techniques, custom metrics would need to be derived. To avoid small sample-size problems, all pitchers with less than 10 appearances were excluded. Also, players were grouped by position, so we consider Bartolo Colon - SP separately from Bartolo Colon - RP. This was done as often we see pitchers slightly alter their style when coming out of the bullpen, at times increasing their velocity and relying more on the fastball (See also: Phil Hughes, Joba Chamberlain).
+
+Trying to mimic how pitchers are colloquially discussed, the variables were chosen to go after certain aspects of a pitcher's abilities and tendencies. The final set of variables used were innings pitcher per appearance, fastball percentage, average fastball speed, differential between average fastball speed and average breaking pitch speed, aggression, and percentage of swings that were swings and misses. Each of these variables will be discussed in turn.
+
+\subsection{IP/App}\label{ipapp}
+One of the most straight-forward variables is innings pitched per appearance. The goal of this variable was two-fold. Obviously, the elite pitchers throw a lot of innings, so we would want an opportunity to segment those off. However, hot-stove conversations often talk about an ``innings-eater'', a pitcher who can give you 200+ innings every year, despite maybe not being in that elite class. Both of those theoretical groups should score highly in this variable.
+
+<<iptable, echo=FALSE, results='asis'>>=
+library(xtable)
+
+mainData <- read.csv('data/mainData.csv')
+mainData <- mainData[mainData$appearances > 10, ]
+
+ip_leaders <- mainData[order(-mainData$IP.App), c("pitcher", "IP.App")]
+names(ip_leaders) <- c("Pitcher", "IP/App")
+
+print(xtable(head(ip_leaders), caption="Innings Pitched per Appearance Leaders", label="ipapptable"), include.rownames=FALSE)
+
+@
+
+No real surprises given in Table \ref{ipapptable}, where we see the top 6 pitchers in IP/App. These would all fall into our theoretical elite group (or so we hope). 
+
+\subsection{FB\%}\label{fastballpct}
+The next variable is fastball percentage. This is a simple metric derived using the following formula
+\[
+FB\% = \frac{fastballs}{total Pitches}
+\]
+Where \(fastballs\) includes the following game day labels: fastball, two-seam fastball, four-seam fastball, cutter, sinker. This variable is a simple usage stat, how often does a given pitcher use his fastball? Conversely, how often does he go offspeed? As we'll see in the results section, the inclusion of a knuckleball in fastballs could sway knuckleballer's cluster results. However, for this analysis, a knuckleball was considered an offspeed pitch. The FB\% leaders are given in Table \ref{fbpcttable}.
+
+<<fbpcttable, echo=FALSE, results='asis'>>=
+
+fb_leaders <- mainData[order(-mainData$FB.), c("pitcher", "FB.")]
+names(fb_leaders) <- c("Pitcher", "FB%")
+
+print(xtable(head(fb_leaders), caption="FB\\% Leaders", label="fbpcttable"), include.rownames=FALSE)
+
+@
+
+Again, no real surprises, as we often talk of relievers being one or two pitch pitchers, primarily relying on their fastball.
+
+\subsection{MPH}\label{mph}
+Average fastball speed is again a very clear metric. The speed of the pitcher's fastball (defined the same as above) was averaged first over game then over years. The purpose of this variable is clear: how hard can you throw the ball? Baseball literature is chock-full of references to ``flamethrowers'', ``hard-throwing lefties'' and the like, so this is an obvious variable to include in the analysis. Table \ref{mphtable} gives the leaders in MPH, with a few usual suspects, and a few hard-throwing guys without much service time (but more than the 10-appearance cutoff).
+
+<<mphtable, echo=FALSE, results='asis'>>=
+
+mph_leaders <- mainData[order(-mainData$MPH), c("pitcher", "MPH")]
+names(mph_leaders) <- c("Pitcher", "MPH")
+
+print(xtable(head(mph_leaders), caption="MPH Leaders", label="mphtable"), include.rownames=FALSE)
+
+@
+
+
+\subsection{DIFF}\label{diff}
+Differential is calculated as follows 
+\[
+DIFF = avg(fastball_{mph}) - avg(nonFastball_{mph})
+\]
+Where both fastball and non-fastball pitches were averaged the same as fastballs in section \ref{mph}. The goal of this variable is to measure how well the offspeed pitches keep the hitter off-balance, via the speed difference. There are potential problems and improvements with this variable, to be discussed in Section \ref{discussion}. The leaders in DIFF are given in Table \ref{difftable}
+
+
+<<difftable, echo=FALSE, results='asis'>>=
+
+diff_leaders <- mainData[order(-mainData$DIFF), c("pitcher", "DIFF")]
+names(diff_leaders) <- c("Pitcher", "DIFF")
+
+print(xtable(head(diff_leaders), caption="DIFF Leaders", label="difftable"), include.rownames=FALSE)
+
+@
+
+Here are some non-household names. A quick tour of Brooks Baseball\footnote{\href{http://www.brooksbaseball.net/}{http://www.brooksbalseball.net/}} for these guys shows they all feature slow curves and/or changeups in the 75-80mph range, with decent fastballs in the 90-93mph range, so it's about what we'd expect.
+
+\subsection{AGG}\label{agg}
+This is perhaps the fuzziest of the variables, and the toughest to describe. When we call a pitcher aggressive, often we mean big fastball, throwing right down the middle, saying ``my best vs. your best''. How do you define that though? 
+
+Pardon a brief technical aside. There are 4 important variables for this: \texttt{px}, \texttt{pz}, \texttt{szb}, and \texttt{sbt}. \texttt{px} describes the horizontal location of the ball relative to the center of the plate, e.g., a pitch with \texttt{px} = 0 would literally be ``right down the middle'' (with respect to the horizontal plane). Horizontal is easy, I gave the pitchers 2 baseball's width deviation from dead center to be labeled down the middle. Vertically is a bit tougher. The top and bottom of the strike zone (supposedly) are determined batter by batter. Those are meant to be captured in the \texttt{szt} and \texttt{szb} variables, respectively. Lastly, \texttt{pz} is the height of the ball above the ground. Thus, we can use \texttt{szb}, \texttt{szt}, and \texttt{pz} to calculate ``down the middle'' for a pitches' vertical location. After all is said and done, what we get is the following pitches labeled ``aggressive'', as shown in Figure \ref{aggplot}. Also plotted was the rulebook strikezone, in dashed line. The data used in the plot is taken from the 2015 World Series between the Royals and Mets.
+
+\begin{center}
+\begin{figure}[!htbp]
+  \caption{Aggressive Pitches}
+  \label{aggplot}
+<<aggplot, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+source("analysis/aggplot.R")
+@
+\end{figure}
+\end{center}
+
+Though imperfect, I'm pleased with the results of the metric, and it properly gives a sense of a pitcher who throws largely down the middle vs. one that pitches more to the corners. The leaders in aggression are given in Table \ref{aggtable} 
+
+<<aggtable, echo=FALSE, results='asis'>>=
+
+agg_leaders <- mainData[order(-mainData$AGG),]
+agg_leaders <- agg_leaders[agg_leaders$appearances > 40, c("pitcher", "AGG")]
+names(agg_leaders) <- c("Pitcher", "AGG")
+
+print(xtable(head(agg_leaders), caption="AGG Leaders", label="aggtable"), include.rownames=FALSE)
+
+@
+Perhaps unsurprisingly, not many big time pitchers in there. There are a lot of relievers barely making the cutoff for appearances on the leaderboard.
+
+
+\subsection{WHIFF\%}\label{whiff}
+The last variable used in this analysis is whiff percentage. It was calculated as 
+\[
+WHIFF = \frac{swinging strikes}{induced swings}
+\]
+
+In other words, of all the times the batter swung the bat, how many times did he miss the ball completely? It may be a bit too on the nose, but this was my way of measuring pitchers who had ``swing-and-miss stuff''. The calculation was pretty straight forward, and the leaders are given in Table \ref{whifftable}.  
+
+<<whifftable, echo=FALSE, results='asis'>>=
+
+whiff_leaders <- mainData[order(-mainData$WHIFF), c("pitcher", "WHIFF.", "appearances")]
+whiff_leaders <- whiff_leaders[!is.infinite(whiff_leaders$WHIFF)& whiff_leaders$appearances > 40, c("pitcher", "WHIFF.")]
+names(whiff_leaders) <- c("Pitcher", "WHIFF%")
+
+print(xtable(head(whiff_leaders), caption="WHIFF Leaders", label="whifftable"), include.rownames=FALSE)
+
+@
+
+Look out AL East,the Yankee bullpen now boasts the top two swing and miss pitchers in baseball. Like most of these tables, there aren't any real surprises here, throwing hard and few pitches results in large strikeout rate statistics, including WHIFF\%.
+
+\subsection{Displaying Results}\label{displayresults}
+To display the results, and compare pitchers and clusters, we need a way to visualize these statistics. I use the \texttt{fmsb} package and \texttt{radarchart} function to do so. An example plot is given for Clayton Kershaw in Figure \ref{clayton}. We can see why he's effective. He throws the most innings per appearance of any pitcher, coupling that with a big time fastball and above average differential. He is more aggressive than your average pitcher, but generates a ton of swings and misses. He does so by mixing in his secondary pitches and only relying on his fastball slightly more than your average pitcher.
+
+\begin{center}
+\begin{figure}[htb]
+  \caption{Clayton Kershaw Attributes}
+  \label{clayton}
+<<clayton, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+source("analysis/clayton.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+Let's compare that to Nathan Eovaldi, who throws hard but doesn't have Kershaw's results or pedigree. In his graph, we can see a plus plus fastball, which he uses a lot, but he only throws an average number of innings, mainly because he gives up too many hits, as we can see in his below average WHIFF metric. He's slightly more aggresive than Kershaw, perhaps aiding in the low swing and miss abilities he seems to possess. 
+
+\begin{center}
+\begin{figure}[htb]
+  \caption{Nathan Eovaldi Attributes}
+  \label{eovaldi}
+<<eovaldi, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+source("analysis/eovaldi.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+\subsection{Clustering}\label{clustering}
+A sample of the resulting dataset (ordered by descending appearances) is given in Table \ref{dataset}. The dataset was first split into relievers and starters, then run through a K-means clustering algorithm with \(k=3\) and \(k=5\) for relievers and starters respectively.
+
+<<dataset, echo=FALSE, results='asis'>>=
+dataset <- head(mainData[order(-mainData$appearances),])
+names(dataset) <- c("Pitcher", "Pos", "IP/App", "FB%", "MPH", "DIFF", "AGG", "WHIFF%", "App")
+print(xtable(dataset, caption="Cleaned Dataset", label="dataset"), include.rownames = FALSE)
+@
+
+The results of the algorithm are given in the next section.
+
+
+\clearpage
+\section{Results}\label{results}
+Finally, without further adieu, we can examine the output of the clustering algorithm. I go over each cluster, giving the top 10 pitchers (ordered by appearances) in each cluster, along with their average radar chart, constructed by taking their average scores for each metric.
+
+\clearpage
+\subsection{Starters - Cluster 1}
+
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 1 Attributes}
+  \label{cluster1}
+<<cluster1, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+source("analysis/SP1.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+<<cluster1table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP1.table.R")
+@
+
+\clearpage
+\subsection{Starters - Cluster 2}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 2 Attributes}
+  \label{cluster2}
+<<cluster2, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP2.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<cluster2table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP2.table.R")
+@
+
+
+
+\clearpage
+\subsection{Starters - Cluster 3}
+
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 3 Attributes}
+  \label{cluster3}
+<<cluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP3.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<cluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP3.table.R")
+@
+
+
+
+
+\clearpage
+\subsection{Starters - Cluster 4}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 4 Attributes}
+  \label{cluster4}
+<<cluster4, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP4.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+
+
+<<cluster4table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP4.table.R")
+@
+
+
+
+
+
+\clearpage
+\subsection{Starters - Cluster 5}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 5 Attributes}
+  \label{cluster5}
+<<cluster5, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP5.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+
+<<cluster5table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP5.table.R")
+@
+
+
+
+
+\clearpage
+\subsection{Relievers - Cluster 1}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 1 Attributes}
+  \label{RPcluster1}
+<<RPcluster1, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/RP1.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+
+<<RPcluster1table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/RP1.table.R")
+@
+
+
+
+\clearpage
+\subsection{Relievers - Cluster 2}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 2 Attributes}
+  \label{RPcluster2}
+<<RPcluster2, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/RP2.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<RPcluster2table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/RP2.table.R")
+@
+
+
+
+\clearpage
+\subsection{Relievers - Cluster 3}
+\lipsum[1]
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Cluster 3 Attributes}
+  \label{RPcluster3}
+<<RPcluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/RP3.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<RPcluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/RP3.table.R")
+@
+
+
+\clearpage
+\section{Discussion}\label{discussion}
+\lipsum[1]
+
+\clearpage
+\section{Conclusion}\label{conclusion}
+\lipsum[1]
+\end{document}

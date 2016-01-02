@@ -8,7 +8,7 @@ RSOURCE = $(wildcard $(RDIR)/*.R)
 OUT_FILES = $(RSOURCE:.R=.Rout)
 
 # Default target
-all: $(OUT_FILES)
+all: $(OUT_FILES) 
 
 # Run the RSOURCE files
 $(RDIR)/%.Rout: $(RDIR)/%.R

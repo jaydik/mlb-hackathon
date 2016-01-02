@@ -18,3 +18,9 @@ vignettes/*.pdf
 # data files
 data/*.csv
 .Rproj.user
+
+# latex junk
+*.tex
+*.gz
+figure/*
+*.log

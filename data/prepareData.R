@@ -10,7 +10,7 @@ data2015 <- read.csv('data/2015.csv')
 
 all_data <- rbind(data2013, data2014, data2015)
 
-all_data <- subset(all_data, all_data$pitchType != "UN")
+all_data <- subset(all_data, !(all_data$pitchType %in% c("UN", "PO", "IN", "AB", "AS")))
 
 #######################
 ## FEATURE ENGINEERING
@@ -191,4 +191,4 @@ mainData <- merge(mainData, whiffs_agg, by=c("pitcher", "pos"))
 
 mainData <- mainData[, c("pitcher", "pos", "IP/App", "FB%", "MPH", "DIFF", "AGG", "WHIFF%", "appearances")]
 
-write.table(mainData, file="mainData.csv", sep=",", row.names=FALSE)
+write.table(mainData, file="data/mainData.csv", sep=",", row.names=FALSE)

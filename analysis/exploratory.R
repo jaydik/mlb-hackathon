@@ -79,6 +79,16 @@ all_data$midy <- (all_data$szt - all_data$szb)/2 + all_data$szb
 
 
 # This will be nice for later in the demonstrations
+
+all_data <- read.csv('data/2013.csv')
+
+botKzone <- 1.6
+inKzone <- -.95
+outKzone <- 0.95
+topKzone <- 3.5
+
+library(lattice)
+
 xyplot(pz~px | downMiddle, data=all_data, groups=pitchType, 
        auto.key=TRUE, 
        aspect="iso", 
@@ -86,8 +96,8 @@ xyplot(pz~px | downMiddle, data=all_data, groups=pitchType,
        ylim=c(0,5), 
        panel=function(...){
          panel.xyplot(...) 
-         panel.rect(inKZone, 
+         panel.rect(inKzone, 
                     botKzone, 
-                    outKZone, 
+                    outKzone, 
                     topKzone, 
                     border="black", lty=3)})
