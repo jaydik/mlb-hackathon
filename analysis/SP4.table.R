@@ -9,4 +9,4 @@ cluster4 <- SP[SP$cluster==4, c("pitcher", "IP.App", "FB.", "MPH", "DIFF", "AGG"
 
 cluster4 <- cluster4[order(-cluster4$appearances),c("pitcher", "IP.App", "FB.", "MPH", "DIFF", "AGG", "WHIFF.")]
 names(cluster4) <- c("Pitcher", "IP/App", "FB%", "MPH", "DIFF", "AGG", "WHIFF%")
-print(xtable(head(cluster4,10),caption = "Cluster 4 Pitchers", label="cluster4table"), include.rownames = FALSE)
+print(xtable(head(cluster4,10),caption = "Top 10 Go Ahead, Hit it Pitchers (by Appearances)", label="cluster4table"), include.rownames = FALSE)

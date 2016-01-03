@@ -25,12 +25,14 @@ fig.align="center"
 
 %%%%%%%%%%%%% Abstract %%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-\lipsum[1]
+There are many ways to classify pitchers from where they pitch in the rotation ``a number 1'' or a ``5 starter'', to how they throw (``sidearmer'', ``submariner''), to pitching style ``strike thrower''/``nibbling the edge''. These typically come from comparisons to other pitchers of the past by baseball people with enough experience and intuition to make the judgements and connections in their memory banks. In this analysis, a computer is given its shot to do the same. The results are laregely positive, with meaningful clusters emerging using only 6 variables, none of which are common performance indicators such as ERA, WHIP or W/L.
 \end{abstract}
+
+
 \section{Introduction}
 Color commentators and sportswriters love phrases like ``swing and miss stuff'' and ``pound the zone'' when discussing pitchers. They also love cliches such as pitchers vs. throwers and ``crafty veterans''. But what are they talking about? What are they doing with these phrases? In essence, they are attempting to group pitchers into clusters, based on their innate abilities and tendencies. If there is one thing the recent advances in data science have taught us, it's that computers are much better at that; so why not give a computer a chance to do the same?
 
-The aim of this paper is to first derive metrics for input into a K-means clustering algorithm (see Section \ref{methodology}), then examining each of the resulting clusters in turn in Section \ref{results}. Section \ref{discussion} examines the results further, giving an overall evaluation of the algorithm's output. Section \ref{conclusion} concludes.
+The aim of this paper is to first derive metrics for input into a K-means clustering algorithm (see Section \ref{methodology}), then examining each of the resulting clusters in turn in Section \ref{results}. Section \ref{discussion} examines the results further, giving an overall evaluation of the algorithm's output, and potential improvements. All of the code used to generate this analysis is available for free use at \href{http://www.github.com/jaydik/mlb-hackathon}{http://www.github.com/jaydik/mlb-hackathon}.
 
 \clearpage
 \section{Methodology}\label{methodology}
@@ -181,7 +183,7 @@ source("analysis/eovaldi.radarChart.R")
 \end{center}
 
 \subsection{Clustering}\label{clustering}
-A sample of the resulting dataset (ordered by descending appearances) is given in Table \ref{dataset}. The dataset was first split into relievers and starters, then run through a K-means clustering algorithm with \(k=3\) and \(k=5\) for relievers and starters respectively.
+A sample of the resulting dataset (ordered by descending appearances) is given in Table \ref{dataset}. The dataset was first split into relievers and starters, then run through a K-means clustering algorithm with \(k=3\) and \(k=5\) for relievers and starters respectively. All variables except appearances were used.
 
 <<dataset, echo=FALSE, results='asis'>>=
 dataset <- head(mainData[order(-mainData$appearances),])
@@ -194,106 +196,16 @@ The results of the algorithm are given in the next section.
 
 \clearpage
 \section{Results}\label{results}
-Finally, without further adieu, we can examine the output of the clustering algorithm. I go over each cluster, giving the top 10 pitchers (ordered by appearances) in each cluster, along with their average radar chart, constructed by taking their average scores for each metric.
+Finally, without further adieu, we can examine the output of the clustering algorithm. I go over each cluster, giving the top 10 pitchers (ordered by appearances) in each cluster, along with their average radar chart, constructed by taking their average scores for each metric. 
 
-\clearpage
-\subsection{Starters - Cluster 1}
+\subsection{Aces}
 
-\lipsum[1]
+Naturally, we begin with the best of the best, the Aces cluster. As we can see, they throw a ton of innings, miss a ton of bats, using their above average fastballs. They are no more or less aggressive than your average pitcher, they're just better at getting guys out. These guys are the ones you want at the front of your rotation.  What's interesting is not so much that this cluster contains Bumgarner, Scherzer, and Kershaw, but the Samardzija and Quintana inclusions can give you pause. When you look at Samardzija and Quintana against the others by the given metrics, they actually stack up favorably. Included in this cluster but outside the top 10, are other Aces such as Jose Fernandez, Masahiro Tanaka, Yu Darvish, Sonny Gray, Gerrit Cole, among many others. 
 
+It's interesting to see that the elite pitchers were grouped together by these metrics. However, with the inclusion of some tier 2 and 3 pitchers, it's clear that these are not sufficient conditions for elite pitcher status.
 \begin{center}
 \begin{figure}[ht]
-  \caption{Cluster 1 Attributes}
-  \label{cluster1}
-<<cluster1, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
-source("analysis/SP1.radarChart.R")
-@
-\end{figure}
-\end{center}
-
-<<cluster1table, echo=FALSE, warning=FALSE, results='asis'>>=
-source("analysis/SP1.table.R")
-@
-
-\clearpage
-\subsection{Starters - Cluster 2}
-\lipsum[1]
-
-\begin{center}
-\begin{figure}[ht]
-  \caption{Cluster 2 Attributes}
-  \label{cluster2}
-<<cluster2, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
-# Run source code to create scatter plot
-source("analysis/SP2.radarChart.R")
-@
-\end{figure}
-\end{center}
-
-
-<<cluster2table, echo=FALSE, warning=FALSE, results='asis'>>=
-source("analysis/SP2.table.R")
-@
-
-
-
-\clearpage
-\subsection{Starters - Cluster 3}
-
-\lipsum[1]
-
-\begin{center}
-\begin{figure}[ht]
-  \caption{Cluster 3 Attributes}
-  \label{cluster3}
-<<cluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
-# Run source code to create scatter plot
-source("analysis/SP3.radarChart.R")
-@
-\end{figure}
-\end{center}
-
-
-<<cluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
-source("analysis/SP3.table.R")
-@
-
-
-
-
-\clearpage
-\subsection{Starters - Cluster 4}
-\lipsum[1]
-
-\begin{center}
-\begin{figure}[ht]
-  \caption{Cluster 4 Attributes}
-  \label{cluster4}
-<<cluster4, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
-# Run source code to create scatter plot
-source("analysis/SP4.radarChart.R")
-@
-\end{figure}
-\end{center}
-
-
-
-
-<<cluster4table, echo=FALSE, warning=FALSE, results='asis'>>=
-source("analysis/SP4.table.R")
-@
-
-
-
-
-
-\clearpage
-\subsection{Starters - Cluster 5}
-\lipsum[1]
-
-\begin{center}
-\begin{figure}[ht]
-  \caption{Cluster 5 Attributes}
+  \caption{Ace Attributes}
   \label{cluster5}
 <<cluster5, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
 # Run source code to create scatter plot
@@ -309,15 +221,115 @@ source("analysis/SP5.table.R")
 @
 
 
+\subsection{Almost-Aces}
+
+The next group, is what I've called ``Almost-Aces''. They have above average fastballs, and they use them more than average, with a good arsenal of offspeed pitches, but they get below average whiffs, and pound the zone a bit more than average. What is interesting about this group compared to the Ace group is that this group has significantly higher offspeed differentials, but pitch significantly fewer innings on average. Additionally, they have lower whiff rates. This suggests they pitch to contact a bit more, and luck being what it is, a certain percentage of these hit balls fall, leading to both their reduced performance and inning counts.
+\begin{center}
+\begin{figure}[ht]
+  \caption{Almost Ace Attributes}
+  \label{cluster1}
+<<cluster1, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+source("analysis/SP1.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+<<cluster1table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP1.table.R")
+@
 
 
-\clearpage
-\subsection{Relievers - Cluster 1}
-\lipsum[1]
+\subsection{Go Ahead, Hit it}
+This is an interesting cluster. They use their fastball significantly more than average, but it is about average in terms of velocity. They're about average in terms of aggression. They don't generate many swings and misses, prompting me to give them the name I did. Due to the high amount of contact they induce, they pitch slightly fewer innings than average. Some of these guys are borderline belonging to other groups, such as Mark Buehrle, Who pitches more innings and throws the fastball less often and less hard than a lot of the pitchers in this segment.
 
 \begin{center}
 \begin{figure}[ht]
-  \caption{Cluster 1 Attributes}
+  \caption{Go Ahead, Hit it Attributes}
+  \label{cluster4}
+<<cluster4, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP4.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+<<cluster4table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP4.table.R")
+@
+
+
+
+\subsection{Aggressively Average}\label{averagesp}
+
+The attribute that stands out most in this otherwise average group is aggression, where they're anything but average. They are the most aggressive group including relievers, which drags down their whiff percentage slightly. Aside from those two, they are a decidely average group. Algorithmically, I think this may just be the group that you were given if you didn't fit anywhere else, leading to a very average result.
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Aggressively Average Attributes}
+  \label{cluster2}
+<<cluster2, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP2.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<cluster2table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP2.table.R")
+@
+
+
+
+\subsection{Painting Corners}
+
+This group is loaded with pitchers that don't have overwhelming stuff, but are known for very good control. They use their fastball quite a bit, and it's a solid fastball, slightly above average in mph. However, they are much less frequently found throwing it down the middle. It would have been interesting to see if there was a strike-looking equivalent to our WHIFF stat, how this cluster would score because I would conjecture that they get more than average amounts of strikes without swings. James Shields is another of the barely-in guys, as he sometimes ends up in the Aces cluster depending on the size of the clusters. Many of these pitchers have had big league success, so it goes to show that you can win with good control over lesser ``stuff''.
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Painting Corners Attributes}
+  \label{cluster3}
+<<cluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/SP3.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<cluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/SP3.table.R")
+@
+
+
+\clearpage
+\subsection{Lights Out Closers}
+These guys are exactly that. They come in throwing hard, pumping in a lot of fastballs, but you can't sit dead-red, because they have an offspeed pitch or two that has significant speed difference. Interestingly, they don't have super high whiff rates -- slightly below average even -- suggesting maybe that their high fastball usage results in a lot of foul balls and balls in play. Since these are sorted by appearances, they tend to favor middle relievers who get used more often, as closers tend to have fewer appearances. That said, also in this cluster is Aroldis Chapman, Dellin Betances, Craig Kimbrel, and other elite closers.
+
+\begin{center}
+\begin{figure}[!htbp]
+  \caption{Lights Out Closers Attributes}
+  \label{RPcluster3}
+<<RPcluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
+# Run source code to create scatter plot
+source("analysis/RP3.radarChart.R")
+@
+\end{figure}
+\end{center}
+
+
+<<RPcluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
+source("analysis/RP3.table.R")
+@
+
+
+\clearpage
+\subsection{Contact Relievers}
+These pitchers use their fastballs predominantly, don't get a ton of strikeouts, but tend to pitch longer in games. A lot of middle relievers here dragging that average IP/app up, but some notables here also include Jonathan Papelbon and Mariano Rivera. 
+
+\begin{center}
+\begin{figure}[ht]
+  \caption{Contact Reliever Attributes}
   \label{RPcluster1}
 <<RPcluster1, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
 # Run source code to create scatter plot
@@ -335,12 +347,12 @@ source("analysis/RP1.table.R")
 
 
 \clearpage
-\subsection{Relievers - Cluster 2}
-\lipsum[1]
+\subsection{Average Relievers}
+Much like in Section \ref{averagesp}, it seems if you don't fit anywhere else, you fit here. With almost exactly average statistics across the board. The actual names have a healthy mix of long men, LOOGYs (Lefty One Out GuY), and setup men. There isn't much here that differentiates them collectively. Given the small bodies of work they have, relievers just may be harder to cluster, as will be discussed in Section \ref{discussion}.
 
 \begin{center}
 \begin{figure}[ht]
-  \caption{Cluster 2 Attributes}
+  \caption{Average Reliever Attributes}
   \label{RPcluster2}
 <<RPcluster2, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
 # Run source code to create scatter plot
@@ -355,33 +367,15 @@ source("analysis/RP2.table.R")
 @
 
 
-
 \clearpage
-\subsection{Relievers - Cluster 3}
-\lipsum[1]
+\section{Conclusion}\label{discussion}
+Given as input 6 calculated metrics, none of which directly measure performance (meaning no ERA, WHIP, etc.), the algorithm was able to make fairly intelligent groups of pitchers. The algorithm performed much better with starters than relievers, mainly because the metrics were chosen with the intent of distinguishing between groups of starters. In future work, it may be best to consider starters and relievers separate entirely, and run clusters on different sets of metrics, to help segment the relievers better. The choices of \(k\) are also arbitrary, but were chosen after some experimentation with various levels. 5 and 3 seemed to provide the most meaningful groups.
 
-\begin{center}
-\begin{figure}[ht]
-  \caption{Cluster 3 Attributes}
-  \label{RPcluster3}
-<<RPcluster3, echo=FALSE, warning=FALSE, out.width='8cm', out.height='8cm'>>=
-# Run source code to create scatter plot
-source("analysis/RP3.radarChart.R")
-@
-\end{figure}
-\end{center}
+With innings pitched per appearance, the goal was to get after innings eaters, and I think it was fairly successful. For relievers however, it wasn't a particularly useful variable, as it seemed to barely even get long-men into their own group. Perhaps percentage of one-out outings to help identify LOOGYs? Fastball percentage was meant to be a proxy for repetoire, but I'm not sure how well it did that. It would be very cool to capture repetoire in a variable more precisely, perhaps in a vector with components for each pitch type, 1 if the pitcher throws that pitch, 0 otherwise would work. On a related note, differential was calculated by taking average fastball velocity minus average offspeed velocity, but offspeed included every non-fastball pitch. More informative would be average velocity of fastest pitch in repetoire - average velocity of slowest pitch in repetoire. For example, a pitcher with a fastball slider curve change, with the curve at 75 mph and the slider and change at 87 and 85 respectively, would have the differential dragged down by the relatively fast slider and changeups. 
+
+Aggression was chosen somewhat arbitrarily as well, with pitchers who nibble at the corners and those that have no control of their pitch whatsoever being penalized equally. Another metric of "on the black", where the pitch is within a ball's width of the edge of the strikezone, would help to give a boost to those who are able to consistently hit the edge. Strike percentage could also be useful, the proportion of total pitches thrown which are strikes. I purposely avoided total pitches thrown per appearance, but perhaps it could be included to further refine the clusters. Most of the variable limiting decisions were made because of the desire to graphically display the results; many dimensions makes that difficult. If the graphical constraint is lifted, the inclusion of more variables, including those discussed above, could help refine the segments.
 
 
-<<RPcluster3table, echo=FALSE, warning=FALSE, results='asis'>>=
-source("analysis/RP3.table.R")
-@
 
 
-\clearpage
-\section{Discussion}\label{discussion}
-\lipsum[1]
-
-\clearpage
-\section{Conclusion}\label{conclusion}
-\lipsum[1]
 \end{document}
