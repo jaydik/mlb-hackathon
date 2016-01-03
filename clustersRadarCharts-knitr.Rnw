@@ -25,7 +25,7 @@ fig.align="center"
 
 %%%%%%%%%%%%% Abstract %%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-There are many ways to classify pitchers from where they pitch in the rotation ``a number 1'' or a ``5 starter'', to how they throw (``sidearmer'', ``submariner''), to pitching style ``strike thrower''/``nibbling the edge''. These typically come from comparisons to other pitchers of the past by baseball people with enough experience and intuition to make the judgements and connections in their memory banks. In this analysis, a computer is given its shot to do the same. The results are laregely positive, with meaningful clusters emerging using only 6 variables, none of which are common performance indicators such as ERA, WHIP or W/L.
+There are many ways to classify pitchers from where they pitch in the rotation (``a number 1'', ``5 starter''), to how they throw (``sidearmer'', ``submariner''), to pitching style (``strike thrower'', ``nibbling the edge''). These typically come from comparisons to pitchers of the past by baseball people with enough experience and intuition to make the judgements and connections in their memory banks. In this analysis, a computer is given its shot to do the same. The results are largely positive, with meaningful clusters emerging using only 6 variables, none of which are common performance indicators such as ERA, WHIP or W/L.
 \end{abstract}
 
 
@@ -36,12 +36,12 @@ The aim of this paper is to first derive metrics for input into a K-means cluste
 
 \clearpage
 \section{Methodology}\label{methodology}
-The input data for this analysis was pitch-level data for the 2013-2015 seasons, including postseason. The variables included information on about the players and game and importantly for this analysis, the pitch. Pitch variables included position of the ball as it crossed the plate, the release velocity, and pitch type, among others. These variables themselves could potentially have been useful in a clustering algorithm, however, to fully take advantage of the clustering techniques, custom metrics would need to be derived. To avoid small sample-size problems, all pitchers with less than 10 appearances were excluded. Also, players were grouped by position, so we consider Bartolo Colon - SP separately from Bartolo Colon - RP. This was done as often we see pitchers slightly alter their style when coming out of the bullpen, at times increasing their velocity and relying more on the fastball (See also: Phil Hughes, Joba Chamberlain).
+The input data for this analysis is pitch-level data for the 2013-2015 seasons, including postseason. The variables include information about the players and game and importantly for this analysis, the pitch. Pitch variables include position of the ball as it crossed the plate, the release velocity, and pitch type, among others. These variables themselves could potentially be useful in a clustering algorithm, however, to fully take advantage of the clustering techniques, custom metrics will need to be derived. To avoid small sample-size problems, all pitchers with less than 10 appearances are excluded. Also, players are grouped by position, so we consider Bartolo Colon - SP separately from Bartolo Colon - RP. This is done as we often see pitchers slightly alter their style when coming out of the bullpen, at times increasing their velocity and relying more on the fastball (See also: Phil Hughes, Joba Chamberlain).
 
-Trying to mimic how pitchers are colloquially discussed, the variables were chosen to go after certain aspects of a pitcher's abilities and tendencies. The final set of variables used were innings pitcher per appearance, fastball percentage, average fastball speed, differential between average fastball speed and average breaking pitch speed, aggression, and percentage of swings that were swings and misses. Each of these variables will be discussed in turn.
+Trying to mimic how pitchers are colloquially discussed, the variables are chosen to go after certain aspects of a pitcher's abilities and tendencies. The final set of variables used is innings pitcher per appearance, fastball percentage, average fastball speed, differential between average fastball speed and average breaking pitch speed, aggression, and percentage of swings that were swings and misses. Each of these variables is discussed in turn.
 
 \subsection{IP/App}\label{ipapp}
-One of the most straight-forward variables is innings pitched per appearance. The goal of this variable was two-fold. Obviously, the elite pitchers throw a lot of innings, so we would want an opportunity to segment those off. However, hot-stove conversations often talk about an ``innings-eater'', a pitcher who can give you 200+ innings every year, despite maybe not being in that elite class. Both of those theoretical groups should score highly in this variable.
+One of the most straight-forward variables is innings pitched per appearance. The goal of this variable is two-fold. Obviously, the elite pitchers throw a lot of innings, so we want an opportunity to segment those off. However, hot-stove conversations often talk about an ``innings-eater'', a pitcher who can give you 200+ innings every year, despite maybe not being in that elite class. Both of those theoretical groups should score highly in this variable.
 
 <<iptable, echo=FALSE, results='asis'>>=
 library(xtable)
@@ -56,14 +56,14 @@ print(xtable(head(ip_leaders), caption="Innings Pitched per Appearance Leaders",
 
 @
 
-No real surprises given in Table \ref{ipapptable}, where we see the top 6 pitchers in IP/App. These would all fall into our theoretical elite group (or so we hope). 
+No real surprises given in Table \ref{ipapptable}, where we see the top 6 pitchers in IP/App. These will all fall into our theoretical elite group (or so we hope). 
 
 \subsection{FB\%}\label{fastballpct}
 The next variable is fastball percentage. This is a simple metric derived using the following formula
 \[
 FB\% = \frac{fastballs}{total Pitches}
 \]
-Where \(fastballs\) includes the following game day labels: fastball, two-seam fastball, four-seam fastball, cutter, sinker. This variable is a simple usage stat, how often does a given pitcher use his fastball? Conversely, how often does he go offspeed? As we'll see in the results section, the inclusion of a knuckleball in fastballs could sway knuckleballer's cluster results. However, for this analysis, a knuckleball was considered an offspeed pitch. The FB\% leaders are given in Table \ref{fbpcttable}.
+Where \(fastballs\) includes the following game day labels: fastball, two-seam fastball, four-seam fastball, cutter, sinker. This variable is a simple usage stat, how often does a given pitcher use his fastball? Conversely, how often does he go offspeed?  The FB\% leaders are given in Table \ref{fbpcttable}.
 
 <<fbpcttable, echo=FALSE, results='asis'>>=
 
@@ -77,7 +77,7 @@ print(xtable(head(fb_leaders), caption="FB\\% Leaders", label="fbpcttable"), inc
 Again, no real surprises, as we often talk of relievers being one or two pitch pitchers, primarily relying on their fastball.
 
 \subsection{MPH}\label{mph}
-Average fastball speed is again a very clear metric. The speed of the pitcher's fastball (defined the same as above) was averaged first over game then over years. The purpose of this variable is clear: how hard can you throw the ball? Baseball literature is chock-full of references to ``flamethrowers'', ``hard-throwing lefties'' and the like, so this is an obvious variable to include in the analysis. Table \ref{mphtable} gives the leaders in MPH, with a few usual suspects, and a few hard-throwing guys without much service time (but more than the 10-appearance cutoff).
+Average fastball speed is again a very clear metric. The speed of the pitcher's fastball (defined the same as above) is averaged first over game then over years. The purpose of this variable is clear: how hard can you throw the ball? Baseball literature is chock-full of references to ``flamethrowers'', ``hard-throwing lefties'' and the like, so this is an obvious variable to include in the analysis. Table \ref{mphtable} gives the leaders in MPH, with a few usual suspects, and a few hard-throwing guys without much service time (but more than the 10-appearance cutoff).
 
 <<mphtable, echo=FALSE, results='asis'>>=
 
@@ -106,12 +106,12 @@ print(xtable(head(diff_leaders), caption="DIFF Leaders", label="difftable"), inc
 
 @
 
-Here are some non-household names. A quick tour of Brooks Baseball\footnote{\href{http://www.brooksbaseball.net/}{http://www.brooksbalseball.net/}} for these guys shows they all feature slow curves and/or changeups in the 75-80mph range, with decent fastballs in the 90-93mph range, so it's about what we'd expect.
+Here are some non-household names. A quick tour of Brooks Baseball\footnote{\href{http://www.brooksbaseball.net/}{http://www.brooksbaseball.net/}} for these guys shows they all feature slow curves and/or changeups in the 75-80mph range, with decent fastballs in the 90-93mph range, so it's about what we expect.
 
 \subsection{AGG}\label{agg}
 This is perhaps the fuzziest of the variables, and the toughest to describe. When we call a pitcher aggressive, often we mean big fastball, throwing right down the middle, saying ``my best vs. your best''. How do you define that though? 
 
-Pardon a brief technical aside. There are 4 important variables for this: \texttt{px}, \texttt{pz}, \texttt{szb}, and \texttt{sbt}. \texttt{px} describes the horizontal location of the ball relative to the center of the plate, e.g., a pitch with \texttt{px} = 0 would literally be ``right down the middle'' (with respect to the horizontal plane). Horizontal is easy, I gave the pitchers 2 baseball's width deviation from dead center to be labeled down the middle. Vertically is a bit tougher. The top and bottom of the strike zone (supposedly) are determined batter by batter. Those are meant to be captured in the \texttt{szt} and \texttt{szb} variables, respectively. Lastly, \texttt{pz} is the height of the ball above the ground. Thus, we can use \texttt{szb}, \texttt{szt}, and \texttt{pz} to calculate ``down the middle'' for a pitches' vertical location. After all is said and done, what we get is the following pitches labeled ``aggressive'', as shown in Figure \ref{aggplot}. Also plotted was the rulebook strikezone, in dashed line. The data used in the plot is taken from the 2015 World Series between the Royals and Mets.
+Pardon a brief technical aside. There are 4 important variables for this: \texttt{px}, \texttt{pz}, \texttt{szb}, and \texttt{sbt}. \texttt{px} describes the horizontal location of the ball relative to the center of the plate, e.g., a pitch with \texttt{px} = 0 would literally be ``right down the middle'' (with respect to the horizontal plane). Horizontal is easy, I give the pitchers 2 baseball's width deviation from dead center to be labeled down the middle. Vertically is a bit tougher. The top and bottom of the strike zone (supposedly) are determined batter by batter. Those are meant to be captured in the \texttt{szt} and \texttt{szb} variables, respectively. Lastly, \texttt{pz} is the height of the ball above the ground. Thus, I can use \texttt{szb}, \texttt{szt}, and \texttt{pz} to calculate ``down the middle'' for a pitches' vertical location. After all is said and done, what I get is pitches labeled ``aggressive'' as shown in Figure \ref{aggplot}. Also plotted is the rulebook strikezone, in dashed line. The data used in the plot is taken from the 2015 World Series between the Royals and Mets.
 
 \begin{center}
 \begin{figure}[!htbp]
@@ -138,12 +138,12 @@ Perhaps unsurprisingly, not many big time pitchers in there. There are a lot of 
 
 
 \subsection{WHIFF\%}\label{whiff}
-The last variable used in this analysis is whiff percentage. It was calculated as 
+The last variable in this analysis is whiff percentage. It is calculated as 
 \[
 WHIFF = \frac{swinging strikes}{induced swings}
 \]
 
-In other words, of all the times the batter swung the bat, how many times did he miss the ball completely? It may be a bit too on the nose, but this was my way of measuring pitchers who had ``swing-and-miss stuff''. The calculation was pretty straight forward, and the leaders are given in Table \ref{whifftable}.  
+In other words, of all the times the batter swung the bat, how many times did he miss the ball completely? It may be a bit too on the nose, but this is my way of measuring pitchers who have ``swing-and-miss stuff''. The calculation is pretty straight forward, and the leaders are given in Table \ref{whifftable}.  
 
 <<whifftable, echo=FALSE, results='asis'>>=
 
@@ -155,7 +155,7 @@ print(xtable(head(whiff_leaders), caption="WHIFF Leaders", label="whifftable"), 
 
 @
 
-Look out AL East,the Yankee bullpen now boasts the top two swing and miss pitchers in baseball. Like most of these tables, there aren't any real surprises here, throwing hard and few pitches results in large strikeout rate statistics, including WHIFF\%.
+Look out AL East,the Yankee bullpen now boasts the top two swing and miss pitchers in baseball. Like most of these tables, there aren't any real surprises here, relievers coming in throwing hard and few pitches results in large strikeout rate statistics, including WHIFF\%.
 
 \subsection{Displaying Results}\label{displayresults}
 To display the results, and compare pitchers and clusters, we need a way to visualize these statistics. I use the \texttt{fmsb} package and \texttt{radarchart} function to do so. An example plot is given for Clayton Kershaw in Figure \ref{clayton}. We can see why he's effective. He throws the most innings per appearance of any pitcher, coupling that with a big time fastball and above average differential. He is more aggressive than your average pitcher, but generates a ton of swings and misses. He does so by mixing in his secondary pitches and only relying on his fastball slightly more than your average pitcher.
@@ -170,7 +170,7 @@ source("analysis/clayton.radarChart.R")
 \end{figure}
 \end{center}
 
-Let's compare that to Nathan Eovaldi, who throws hard but doesn't have Kershaw's results or pedigree. In his graph, we can see a plus plus fastball, which he uses a lot, but he only throws an average number of innings, mainly because he gives up too many hits, as we can see in his below average WHIFF metric. He's slightly more aggresive than Kershaw, perhaps aiding in the low swing and miss abilities he seems to possess. 
+Let's compare that to Nathan Eovaldi, who throws hard but doesn't have Kershaw's results or pedigree. In his graph, we can see a plus plus fastball, which he uses a lot, but he only throws an average number of innings, mainly because he gives up too many hits, as we can see in his below average WHIFF metric. He's slightly more aggresive than Kershaw, perhaps resulting in the low swing and miss abilities he seems to possess. 
 
 \begin{center}
 \begin{figure}[htb]
@@ -183,7 +183,7 @@ source("analysis/eovaldi.radarChart.R")
 \end{center}
 
 \subsection{Clustering}\label{clustering}
-A sample of the resulting dataset (ordered by descending appearances) is given in Table \ref{dataset}. The dataset was first split into relievers and starters, then run through a K-means clustering algorithm with \(k=3\) and \(k=5\) for relievers and starters respectively. All variables except appearances were used.
+A sample of the resulting dataset (ordered by descending appearances) is given in Table \ref{dataset}. The dataset is first split into relievers and starters, then run through a K-means clustering algorithm with \(k=3\) and \(k=5\) for relievers and starters respectively. All variables except appearances are used.
 
 <<dataset, echo=FALSE, results='asis'>>=
 dataset <- head(mainData[order(-mainData$appearances),])
@@ -200,7 +200,7 @@ Finally, without further adieu, we can examine the output of the clustering algo
 
 \subsection{Aces}
 
-Naturally, we begin with the best of the best, the Aces cluster. As we can see, they throw a ton of innings, miss a ton of bats, using their above average fastballs. They are no more or less aggressive than your average pitcher, they're just better at getting guys out. These guys are the ones you want at the front of your rotation.  What's interesting is not so much that this cluster contains Bumgarner, Scherzer, and Kershaw, but the Samardzija and Quintana inclusions can give you pause. When you look at Samardzija and Quintana against the others by the given metrics, they actually stack up favorably. Included in this cluster but outside the top 10, are other Aces such as Jose Fernandez, Masahiro Tanaka, Yu Darvish, Sonny Gray, Gerrit Cole, among many others. 
+Naturally, we begin with the best of the best, the Aces cluster. As we can see, they throw a ton of innings, and miss a ton of bats, using their above average fastballs. They are more aggressive than your average pitcher. These guys are the ones you want at the front of your rotation.  What's interesting is not so much that this cluster contains Bumgarner, Scherzer, and Kershaw, but the Samardzija and Quintana inclusions can give you pause. When you look at Samardzija and Quintana against the others by the given metrics, they actually stack up favorably. Included in this cluster but outside the top 10, are other Aces such as Jose Fernandez, Masahiro Tanaka, Yu Darvish, Sonny Gray, Gerrit Cole, among many others. 
 
 It's interesting to see that the elite pitchers were grouped together by these metrics. However, with the inclusion of some tier 2 and 3 pitchers, it's clear that these are not sufficient conditions for elite pitcher status.
 \begin{center}
@@ -223,7 +223,7 @@ source("analysis/SP5.table.R")
 
 \subsection{Almost-Aces}
 
-The next group, is what I've called ``Almost-Aces''. They have above average fastballs, and they use them more than average, with a good arsenal of offspeed pitches, but they get below average whiffs, and pound the zone a bit more than average. What is interesting about this group compared to the Ace group is that this group has significantly higher offspeed differentials, but pitch significantly fewer innings on average. Additionally, they have lower whiff rates. This suggests they pitch to contact a bit more, and luck being what it is, a certain percentage of these hit balls fall, leading to both their reduced performance and inning counts.
+The next group, is what I call ``Almost-Aces''. They have above average fastballs, and they use them more than average, with a good arsenal of offspeed pitches, but they get below average whiffs, and pound the zone a bit more than average. What is interesting about this group compared to the Ace group is that this group has significantly higher offspeed differentials, but pitch significantly fewer innings on average. Additionally, they have lower whiff rates. This suggests they pitch to contact a bit more, and luck being what it is, a certain percentage of these hit balls fall, leading to both their reduced performance and inning counts.
 \begin{center}
 \begin{figure}[ht]
   \caption{Almost Ace Attributes}
@@ -261,7 +261,7 @@ source("analysis/SP4.table.R")
 
 \subsection{Aggressively Average}\label{averagesp}
 
-The attribute that stands out most in this otherwise average group is aggression, where they're anything but average. They are the most aggressive group including relievers, which drags down their whiff percentage slightly. Aside from those two, they are a decidely average group. Algorithmically, I think this may just be the group that you were given if you didn't fit anywhere else, leading to a very average result.
+The attribute that stands out most in this otherwise average group is aggression, where they're anything but average. They are the most aggressive group including relievers, which drags down their whiff percentage slightly. Aside from those two, they are a decidely average group. Algorithmically, I think this may just be the group that you are given if you don't fit anywhere else, leading to a very average result.
 
 \begin{center}
 \begin{figure}[ht]
